@@ -2,15 +2,18 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
+//this is a function component that does not store state
 function Square(props) {
   return (
-    <button className="square" onClick={props.onClick}>
-      {props.value}
+    <button 
+      className="square" 
+      onClick={props.onClick}>
+        {props.value}
     </button>
   );
 }
   
-class Board extends React.Component {  
+class Board extends React.Component {
   renderSquare(i) {
     return (
       <Square 
@@ -87,6 +90,7 @@ class Game extends React.Component {
     const winner = calculateWinner(current.squares);
     
     const moves = history.map((step, move) => {
+      // Checks if move is 0 => start of game
       const desc = move ?
       'Go to move #' + move :
       'Go to game start';
