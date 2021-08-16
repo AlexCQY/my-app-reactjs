@@ -1,159 +1,121 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
+import { Formik, Field, Form, ErrorMessage, useField } from 'formik';
+import * as Yup from 'yup';
+import App from './App';
 
-//this is a function component that does not store state
-function Square(props) {
-  return (
-    <button 
-      className="square" 
-      onClick={props.onClick}>
-        {props.value}
-    </button>
-  );
-}
-  
-class Board extends React.Component {
-  renderSquare(i) {
+const MyTextInput = ({ label, ...props }) => {
+    const [field, meta] = useField(props);
     return (
-      <Square 
-        value={this.props.squares[i]}
-        onClick={() => this.props.onClick(i)}
-      />
-    );
-  }
+        <>
+            <label htmlFor={props.id || props.name}>{label}</label>
+            <input className="text-input" {...field} {...props} />
+            {meta.touched && meta.error ? (
+                <div className="error">{meta.error}</div>
+            ) : null}
+        </>
+    )
+};
 
-  render() {
+const MyCheckBox = ({ children, ...props }) => {
+    const [field, meta] = useField({ ...props, type: 'checkbox'});
     return (
-      <div>
-        <div className="board-row">
-          {this.renderSquare(0)}
-          {this.renderSquare(1)}
-          {this.renderSquare(2)}
+        <div>
+            <label className="checkbox-input">
+                <input type="checkbox" {...field} {...props} />
+                {children}
+            </label>
+            {meta.touched && meta.error ? (
+                <div className="error">{meta.error}</div>
+            ): null}
         </div>
-        <div className="board-row">
-          {this.renderSquare(3)}
-          {this.renderSquare(4)}
-          {this.renderSquare(5)}
-        </div>
-        <div className="board-row">
-          {this.renderSquare(6)}
-          {this.renderSquare(7)}
-          {this.renderSquare(8)}
-        </div>
-      </div>
     );
-  }
-}
+};
 
-class Game extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      history: [{
-        squares: Array(9).fill(null),
-      }],
-      stepNumber: 0,
-      xIsNext: true,
-    };
-  }
+const MySelect = ({ label, ...props }) => {
+       const [field, meta] = useField(props);
+       return (
+         <div>
+           <label htmlFor={props.id || props.name}>{label}</label>
+           <select {...field} {...props} />
+           {meta.touched && meta.error ? (
+             <div className="error">{meta.error}</div>
+           ) : null}
+         </div>
+       );
+};
 
-  handleClick(i) {
-    const history = this.state.history.slice(0, this.state.stepNumber + 1);
-    const current = history[history.length - 1];
-    const squares = current.squares.slice();
 
-    //no clicking if there is already a winner
-    if (calculateWinner(squares) || squares[i]) {
-      return;
-    }
-    squares[i] = this.state.xIsNext ? 'X' : 'O';
-    this.setState({
-      history: history.concat([{
-        squares: squares,
-      }]),
-      stepNumber: history.length,
-      xIsNext: !this.state.xIsNext,
-    });
-  }
+const Signupform = () => {
 
-  jumpTo(step) {
-    this.setState({
-      stepNumber: step,
-      xIsNext: (step % 2) === 0,
-    });
-  }
-
-  render() {
-    const history = this.state.history;
-    const current = history[this.state.stepNumber];
-    const winner = calculateWinner(current.squares);
-    
-    const moves = history.map((step, move) => {
-      // Checks if move is 0 => start of game
-      const desc = move ?
-      'Go to move #' + move :
-      'Go to game start';
-      return (
-        <li key={move}>
-          <button onClick={() => this.jumpTo(move)}>
-            {desc}
-          </button>
-        </li>
-      )
-    })
-
-    /*
-    null represents boolean false, 
-    if winner is either 'X' or 'O' will result in true
-    */
-    let status;
-    if (winner) {
-      status = 'Winner: ' + winner;
-    } else {
-      status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
-    }
     return (
-      <div className="game">
-        <div className="game-board">
-          <Board 
-            squares={current.squares}
-            onClick={(i) => this.handleClick(i)}
-          />
-        </div>
-        <div className="game-info">
-          <div>{status}</div>
-          <ol>{moves}</ol>
-        </div>
-      </div>
-    );
-  }
-}
+        <Formik 
+            initialValues={{firstName: '', lastName: '', email: ''}}
+            validationSchema={Yup.object({
+                firstName: Yup.string()
+                        .max(15, 'Must be 15 characters or less')
+                        .required('Required'),
+                lastName: Yup.string()
+                        .max(20, 'Must be 20 characters or less')
+                        .required("Required"),
+                email: Yup.string().email('Invalid email address')
+                        .required("Required")
+            })}
+            onSubmit={(values, { setSubmitting }) => {
+                
+                setTimeout(() => {
+                    alert(JSON.stringify(values, null, 2));
+                    setSubmitting(false);
+                }, 400);
+                
+            }}
+            >
+            <Form>
+                <MyTextInput
+                    label="First Name"
+                    name="firstName"
+                    type="text"
+                    placeholder="Jane"
+                />
 
-// ========================================
+                <MyTextInput
+                 label="Last Name"
+                 name="lastName"
+                 type="text"
+                 placeholder="Doe"
+               />
+ 
+                <MyTextInput
+                    label="Email Address"
+                    name="email"
+                    type="email"
+                    placeholder="jane@formik.com"
+                />
+
+                <MySelect label="Job Type" name="jobType">
+                    <option value="">Select a job type</option>
+                    <option value="designer">Designer</option>
+                    <option value="development">Developer</option>
+                    <option value="product">Product Manager</option>
+                    <option value="other">Other</option>
+                </MySelect>
+
+                <MyCheckBox name="acceptedTerms">
+                    I accept the terms and conditions
+                </MyCheckBox>
+
+                <button type="submit">Submit</button>
+
+
+            </Form>
+
+            
+
+            </Formik>
+    );
+};
 
 ReactDOM.render(
-  <Game />,
-  document.getElementById('root')
+    <App />,
+    document.getElementById('root')
 );
-
-function calculateWinner(squares) {
-  const lines = [
-    [0, 1, 2],
-    [3, 4, 5],
-    [6, 7, 8],
-    [0, 3, 6],
-    [1, 4, 7],
-    [2, 5, 8],
-    [0, 4, 8],
-    [2, 4, 6],
-  ];
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
-    }
-  }
-  return null;
-}
-  
